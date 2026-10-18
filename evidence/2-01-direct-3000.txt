@@ -1,0 +1,12 @@
+2026-10-18T14:40:26Z ### Direct access to app on 3000 (expect failure)
+2026-10-18T14:40:26Z ### cmd: curl -sv --max-time 5 http://localhost:3000/
+2026-10-18T14:40:27Z * Host localhost:3000 was resolved.
+2026-10-18T14:40:27Z * IPv6: ::1
+2026-10-18T14:40:27Z * IPv4: 127.0.0.1
+2026-10-18T14:40:27Z *   Trying [::1]:3000...
+2026-10-18T14:40:27Z *   Trying 127.0.0.1:3000...
+2026-10-18T14:40:27Z * connect to ::1 port 3000 from :: port 3491 failed: Connection refused
+2026-10-18T14:40:27Z * connect to 127.0.0.1 port 3000 from 0.0.0.0 port 3492 failed: Connection refused
+2026-10-18T14:40:27Z * Failed to connect to localhost port 3000 after 1225 ms: Could not connect to server
+2026-10-18T14:40:27Z * closing connection #0
+2026-10-18T14:40:27Z ### exit: 7

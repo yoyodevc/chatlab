@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>ChatLab Laboratory Report</title>
+<style>
+@page { size: A4; margin: 20mm 18mm; }
+body { font: 10.5pt/1.45 "Segoe UI", Arial, sans-serif; color: #111; }
+h1 { font-size: 20pt; margin: 0 0 4pt; } h2 { font-size: 14pt; margin: 16pt 0 6pt; border-bottom: 1px solid #999; padding-bottom: 2pt; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 12pt 0 4pt; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font-size: 9.2pt; page-break-inside: auto; }
+th, td { border: 1px solid #777; padding: 3pt 5pt; vertical-align: top; text-align: left; } th { background: #e8e8e8; }
+tr { page-break-inside: avoid; }
+code, pre { font: 8.8pt Consolas, monospace; background: #f3f3f3; } pre { padding: 6pt; white-space: pre-wrap; border: 1px solid #ddd; }
+.fill { background: #fff3a8; padding: 0 2px; } .q { font-weight: 600; margin-top: 8pt; } .pb { page-break-before: always; }
+.cap { font-size: 9pt; color: #444; margin-top: -4pt; }
+</style></head><body>
+
+<h1>ChatLab: WebSocket Design, API Gateway and Versioning, Authentication and Authorization</h1>
+<p><b>MIT 203 &mdash; Advanced System Design and Implementation &middot; Laboratory Activity No. 4</b></p>
+<table style="width:auto">
+<tr><th>Student</th><td>Lim, John Fredrick N.</td></tr>
+<tr><th>Student no. / Section</th><td>2021-012013 &middot; MIT 1A</td></tr>
+<tr><th>Date performed</th><td>18 October 2026 (all measurements, timestamps in the evidence pack are UTC)</td></tr>
+<tr><th>Repository</th><td><span class="fill">[Git URL]</span> &mdash; start with <code>cp .env.example .env</code>, then <code>docker compose up --build</code></td></tr>
+</table>
+
+<h3>AI-assistance disclosure</h3>
+<p>I used Claude (Anthropic) to help me accomplish this laboratory activity. Claude helped with writing the ChatLab source code (<code>app/</code>, <code>nginx/</code>, <code>client/</code>), the test and evidence scripts in <code>scripts/</code>, running the tests on my computer, and drafting this report and the answers to the guide questions. The tests were run on my own machine with Docker, and the results in the observation tables come from the timestamped files in <code>evidence/</code>. I reviewed the code, the results and the answers, and I take responsibility for the submitted work.</p>
+
+<h2>1. Overview and System Design</h2>
+<p>ChatLab is one Node.js 20 application (Express for REST, the <code>ws</code> package for WebSockets) running behind an NGINX 1.27 gateway, both started by Docker Compose. Only the gateway publishes a port (8080); the application listens on port 3000 inside the Docker network only. Users, rooms and messages are seeded from <code>app/data.json</code> with bcrypt-hashed passwords and held in memory.</p>
+<table>
+<tr><th>Component</th><th>Responsibility</th></tr>
+<tr><td><code>nginx/nginx.conf</code></td><td>Routes <code>/api/</code>, <code>/ws</code> and <code>/</code>; forwards <code>Upgrade</code>/<code>Connection</code>; rate limits (API 10 r/s, burst 20; login 5 r/s, burst 5; status 429); access log built from <code>$uri</code> so query strings are never logged; <code>proxy_read_timeout 60s</code> on <code>/ws</code>.</td></tr>
+<tr><td><code>app/server.js</code></td><td>REST v1 and v2, WebSocket upgrade handling (Origin check, JWT check), message validation (4 KB raw, 500 characters of text), rooms map, heartbeat (30 s ping), v1 deprecation headers.</td></tr>
+<tr><td><code>app/auth.js</code></td><td>Login (bcrypt compare, constant-time dummy hash for unknown users), JWT issue (HS256, 15 min, issuer <code>chatlab</code>, secret from <code>JWT_SECRET</code>), verification pinned to HS256.</td></tr>
+<tr><td><code>app/authz.js</code></td><td>The single function <code>can(user, action, room, msg)</code> that holds every permission rule of Section 4.2.</td></tr>
+</table>
+<p>Design decisions worth noting: (1) the sender of a message is always the verified token subject and any client-supplied <code>from</code> is ignored; (2) membership is read live from state on every check while the role comes from the token; (3) the server re-checks permission on delivery, not only on send, so a removed member stops receiving immediately; (4) a socket whose token has expired is closed with code 4401 on its next message or heartbeat; (5) <code>HEARTBEAT_MS</code> and <code>TOKEN_TTL</code> are configurable by environment variable so that the timeout and expiry experiments can be run without changing code.</p>
+
+<h2>2. Exercise 1 &mdash; WebSocket Chat Server</h2>
+<h3>Table 1.1 &mdash; WebSocket Behaviour</h3>
+<table>
+<tr><th style="width:27%">Test</th><th style="width:28%">Result observed</th><th>Remarks</th></tr>
+<tr><td>Message received by all 3 clients in the room</td><td>alice, bob (sender) and carol all received it</td><td>Sender is included, as required. Evidence 1-01.</td></tr>
+<tr><td>Message received by a client in a different room</td><td>Not received (client in <code>dev</code> got nothing)</td><td>Broadcast iterates only over the room's socket set.</td></tr>
+<tr><td>Invalid JSON sent</td><td><code>{"type":"error","code":"BAD_FORMAT","detail":"invalid JSON"}</code></td><td>Connection stayed open.</td></tr>
+<tr><td>Unknown message type sent</td><td>Error <code>UNKNOWN_TYPE</code></td><td>A message with no <code>type</code> returned <code>BAD_FORMAT</code>.</td></tr>
+<tr><td>5 KB message sent</td><td>Error <code>TOO_LARGE</code></td><td>Server kept running; a following message was delivered and the sender's socket was still open. A 501-character text returned <code>TOO_LONG</code>.</td></tr>
+<tr><td>Client frozen (Ctrl+Z): time until server closes it (s)</td><td><b>57.8 s</b></td><td>Simulated with a client that never answers pings (<code>autoPong:false</code>), which is what a suspended <code>wscat</code> does. Server terminated the socket (client saw code 1006). Evidence 1-02.</td></tr>
+<tr><td>Average time from send to receive, 20 messages (ms)</td><td><b>2.3 ms</b> (min 2, max 3)</td><td>Loopback, through the NGINX gateway, measured as time until the sender receives its own broadcast.</td></tr>
+</table>
+<p class="cap">The frozen-client time is not constant: pings go out on a fixed 30 s timer, so a client that freezes just after a tick is dropped about 60 s later, and one that freezes just before a tick about 30 s later. 57.8 s is consistent with freezing shortly after a tick.</p>
+
+<h3>Guide questions</h3>
+<p class="q">Q1. HTTP request&ndash;response versus WebSocket; why WebSocket suits chat.</p>
+<p>HTTP is client-initiated: every exchange is a new request that carries its own headers, and the server can only answer, never speak first. A WebSocket starts as an HTTP request and then upgrades the same TCP connection to a persistent, full-duplex channel with 2&ndash;14 bytes of framing per message, so either side can send at any time. A chat application needs the server to push a message to everyone in a room the moment someone writes it. With polling, the delay is up to one polling interval (on average half of it), most requests return nothing, and each carries full headers and authentication. With WebSockets, the 20-message test measured 2.3 ms from send to delivery over one open connection, and no traffic is produced when the room is quiet.</p>
+
+<p class="q">Q2. Opening handshake and headers.</p>
+<p>The client sends an HTTP/1.1 <code>GET /ws</code> with <code>Connection: Upgrade</code>, <code>Upgrade: websocket</code>, <code>Sec-WebSocket-Version: 13</code>, a random <code>Sec-WebSocket-Key</code> and, from browsers, an <code>Origin</code>. The server replies <code>101 Switching Protocols</code> with <code>Upgrade: websocket</code>, <code>Connection: upgrade</code> and <code>Sec-WebSocket-Accept</code>, which is the base64 of SHA-1(key + a fixed GUID); this proves the server understood the protocol. After the 101, the same TCP connection carries WebSocket frames. My captured exchange through the gateway (evidence 2-02) shows <code>HTTP/1.1 101 Switching Protocols</code> from <code>nginx/1.27.5</code> with <code>Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=</code>, which is the correct value for the key <code>dGhlIHNhbXBsZSBub25jZQ==</code> that I sent. Figure 1 shows the same handshake as made by a real browser (Microsoft Edge) when the ChatLab page opens its WebSocket after login: the request carries <code>Upgrade: websocket</code>, <code>Connection: Upgrade</code>, <code>Sec-WebSocket-Version: 13</code>, a fresh <code>Sec-WebSocket-Key</code>, <code>Origin: http://localhost:8080</code> and <code>Sec-WebSocket-Extensions: permessage-deflate</code>, and the reply is <code>101 Switching Protocols</code>.</p>
+<p><img src="../evidence/screens/ws-handshake-devtools.png" style="width:100%;border:1px solid #999"></p>
+<p class="cap">Figure 1 &mdash; WebSocket handshake of the browser client through the gateway. The panel was rendered from the headers recorded by the DevTools Protocol Network domain (evidence/browser-ws-handshake.json); the token in the URL is shortened.</p>
+<p>
+
+<p class="q">Q3. Why a heartbeat; what happens to the rooms map without one.</p>
+<p>TCP does not tell a server that the other side has silently disappeared (a crashed process, a laptop that went to sleep, a dropped Wi-Fi link): the connection can look open for minutes or hours. Without a heartbeat, such dead sockets stay in the <code>rooms</code> sets forever. The map grows without bound, every broadcast keeps writing to dead sockets and buffering data for them, and other users still see them as present. The ping/pong cycle detects them: the frozen-client test closed the dead socket after 57.8 s. A second benefit is that periodic traffic keeps intermediaries such as the gateway from closing a quiet but healthy connection (see Exercise 2, Q3).</p>
+
+<p class="q">Q4. Two copies behind a load balancer.</p>
+<p>The rooms map, the message history and the memberships are in the memory of one process. If Alice is connected to copy A and Bob to copy B, they are both in &ldquo;general&rdquo; but A's broadcast loop never sees Bob's socket, so they do not receive each other's messages; the two copies also hold different message history and different membership changes. Sticky sessions do not fix this because the problem is cross-node delivery, not where one client lands. The usual solution is a shared backplane: each node publishes every chat event to a broker (Redis pub/sub, NATS or Kafka) and every node delivers events from the broker to its own local sockets, while history, rooms and memberships live in a shared database.</p>
+
+<h2>3. Exercise 2 &mdash; API Gateway and Versioning</h2>
+<h3>Table 2.1 &mdash; Gateway Behaviour</h3>
+<table>
+<tr><th style="width:27%">Test</th><th style="width:28%">Result observed</th><th>Remarks</th></tr>
+<tr><td>Direct access to app on port 3000 from host</td><td>Connection refused (curl exit 7)</td><td>Compose uses <code>expose</code>, not <code>ports</code>, for the app. Evidence 2-01.</td></tr>
+<tr><td>WebSocket connection through gateway</td><td><code>101 Switching Protocols</code></td><td>Evidence 2-02 and the <code>GET /ws 101</code> lines in the gateway log.</td></tr>
+<tr><td>WebSocket without Upgrade / Connection headers</td><td>Handshake rejected with <b>HTTP 404 Not Found</b></td><td>After deleting the two <code>proxy_set_header</code> lines and reloading NGINX. Gateway log: <code>GET /ws 404</code>. Evidence 2-06.</td></tr>
+<tr><td>100 rapid requests: count of 200 responses</td><td>Parallel burst: <b>21</b>. Sequential curl loop (lab command): <b>89</b></td><td>Evidence 3-01 (parallel) and 2-05 (sequential loop, about 7 s long).</td></tr>
+<tr><td>100 rapid requests: count of rejected responses</td><td>Parallel burst: <b>79 &times; 429</b>. Sequential loop: <b>11 &times; 429</b></td><td><code>limit_req_status 429</code>. Burst of 20 plus 1 immediate request explains 21; the slower loop is refilled at 10 r/s, giving about 20 + 7 s &times; 10 &asymp; 90 accepted.</td></tr>
+<tr><td>v1 response shape and deprecation headers</td><td>Flat array <code>[{"id","from":"bob","text","ts"}]</code>; headers <code>Deprecation: true</code>, <code>Sunset: Wed, 30 Jun 2027 00:00:00 GMT</code>, <code>Link: &lt;/api/v2/rooms&gt;; rel="successor-version"</code></td><td>Headers are added to every v1 response, including 401 and login responses. Evidence 2-03, 3-03.</td></tr>
+<tr><td>v2 response shape</td><td><code>{"items":[{"from":{"username":"bob","role":"member"},...}],"nextCursor":...}</code></td><td>No deprecation headers. With <code>limit=1</code> the cursor was <code>msg_1</code>; it is <code>null</code> on the last page. Evidence 2-04.</td></tr>
+<tr><td>Idle WebSocket closed after (s)</td><td><b>61.2 s</b> (code 1006)</td><td>Measured with the server heartbeat set to 120 s so that no ping reaches NGINX. With the normal 30 s heartbeat the connection is not closed by the gateway; I did not time that case. Evidence 2-07.</td></tr>
+</table>
+
+<h3>Guide questions</h3>
+<p class="q">Q1. Gateway responsibilities: implemented and missing.</p>
+<p>A gateway is the single entry point to a system. Typical responsibilities are routing, TLS termination, authentication and token validation at the edge, authorization hooks, rate limiting and quotas, load balancing and health checks, API version routing, request/response transformation, caching, request tracing and logging, CORS, request-size limits, and protection against abuse (WAF, bot filtering). In this laboratory I implemented: routing of REST, WebSocket and static traffic; Upgrade forwarding for WebSockets; rate limiting with separate zones for the API and for login; a request id header (<code>X-Request-Id</code>) passed to the app and written to the log; isolation of the application from the host network; and a log format that hides query strings. API versioning is implemented in the application, and the gateway only routes by URI prefix. For production I would add TLS with HSTS, validation of the JWT at the gateway so that unauthenticated traffic never reaches the app, per-user (not only per-IP) limits, connection limits for WebSockets, health checks and load balancing across several app instances, request-size limits, a WAF, central metrics and distributed tracing.</p>
+
+<p class="q">Q2. Why the connection failed without the Upgrade and Connection headers.</p>
+<p><code>Upgrade</code> and <code>Connection</code> are hop-by-hop headers: NGINX does not pass them to the upstream unless told to, and by default it rewrites <code>Connection</code> to <code>close</code>. Without them the application received an ordinary <code>GET /ws</code>, not an upgrade request, so the Node server's <code>upgrade</code> event never fired. The request fell through to Express, which has no <code>/ws</code> route and answered 404; the browser or <code>wscat</code> then reported a failed handshake. The gateway log shows <code>GET /ws</code> with status 404 instead of 101, which confirms that the failure was in the proxying and not in authentication.</p>
+
+<p class="q">Q3. Heartbeat interval longer than the gateway timeout.</p>
+<p><code>proxy_read_timeout</code> closes a proxied connection if nothing has been read from the upstream for that long. Server pings count as upstream traffic and reset the timer. If the heartbeat interval were longer than 60 s, a quiet but perfectly healthy connection would be cut by the gateway before the next ping. I reproduced this by setting the heartbeat to 120 s: an idle, ping-answering client was closed after 61.2 s with code 1006. Users would see random disconnections after a minute of silence, and the server would only notice later through its own cleanup. The heartbeat interval must therefore be clearly shorter than the smallest idle timeout on the path (the 30 s value is half of the 60 s gateway timeout), and the client should reconnect automatically.</p>
+
+<p class="q">Q4. URI versioning versus header versioning; why v1 must keep working.</p>
+<p>I used URI versioning (<code>/api/v1/</code>, <code>/api/v2/</code>). It is explicit in logs, browser address bars and curl commands, is trivial to route and rate-limit in NGINX with <code>location</code> blocks, and caches correctly without <code>Vary</code>. Header versioning (<code>Accept-Version: 2</code>) keeps URIs stable and is closer to the idea that a URI names a resource, but it is invisible in logs and links, easy to forget in a test, and harder to route and cache. Version 2 changes the response shape (a flat array becomes an object with <code>items</code> and a structured <code>from</code>), which is a breaking change. Existing clients, such as mobile apps that users have not updated, still parse the old shape, so v1 must keep working until they migrate. The <code>Deprecation</code>, <code>Sunset</code> and <code>Link</code> headers tell client developers the date on which v1 will be removed and where to go.</p>
+
+<h2>4. Exercise 3 &mdash; Authentication with JWT</h2>
+<h3>Table 3.1 &mdash; Authentication Tests</h3>
+<table>
+<tr><th style="width:27%">Test</th><th style="width:28%">Result observed</th><th>Remarks</th></tr>
+<tr><td>Login with correct password</td><td>200, <code>{"token": "..."}</code></td><td>Evidence 3-01.</td></tr>
+<tr><td>Login with wrong password</td><td>401 <code>{"error":"Invalid credentials"}</code></td><td>Same response for an unknown user. Evidence 3-04.</td></tr>
+<tr><td>REST call with no token</td><td>401 <code>{"error":"Unauthorized"}</code></td><td>Evidence 3-03.</td></tr>
+<tr><td>REST call with valid token</td><td>200</td><td></td></tr>
+<tr><td>REST call with expired token</td><td>401</td><td>Run with <code>TOKEN_TTL=5s</code>, waited 7 s. Evidence 3-07.</td></tr>
+<tr><td>REST call with tampered token</td><td>401</td><td>Last character of the payload changed.</td></tr>
+<tr><td>WebSocket with no token</td><td>Upgrade rejected, HTTP 401</td><td></td></tr>
+<tr><td>WebSocket with valid token</td><td>Connected (101)</td><td></td></tr>
+<tr><td>WebSocket from a different Origin</td><td>Upgrade rejected, HTTP 403</td><td><code>Origin: http://evil.example</code>. Evidence 3-05. Clients that send no Origin header (wscat, curl) are not blocked because the check targets browsers.</td></tr>
+<tr><td>Client sends a fake &ldquo;from&rdquo; field</td><td>Delivered with <code>from: "bob"</code></td><td>Bob's socket sent <code>"from":"alice"</code>; the server used the verified token subject.</td></tr>
+<tr><td>Token visible in gateway access log?</td><td><b>No</b> &mdash; 0 lines contain <code>token=</code></td><td>WebSocket lines read <code>GET /ws HTTP/1.1 101</code>. Evidence 3-06.</td></tr>
+</table>
+<p class="cap">The gateway's error log can still contain a full request line (with query string) if an upstream error occurs on <code>/ws</code>; this did not happen in my run but it is a real limitation of passing tokens in the URL.</p>
+
+<h3>Guide questions</h3>
+<p class="q">Q1. The three parts of a JWT; why the payload is readable but not changeable.</p>
+<p>A JWT is <code>header.payload.signature</code>, each part base64url-encoded. Decoding Bob's token from my run (evidence 3-02) gives header <code>{"alg":"HS256","typ":"JWT"}</code>; payload <code>{"sub":"bob","role":"member","iat":1792334425,"exp":1792335325,"iss":"chatlab"}</code> &mdash; subject, role, issued-at, expiry (exactly 900 s after issue = 15 minutes) and issuer; and a signature, the HMAC-SHA256 of <code>base64url(header) + "." + base64url(payload)</code> under the server secret. The payload is only encoded, not encrypted, so anyone holding the token can read it (which is why secrets must never be put in it). It cannot be altered because any change to the header or payload produces a different HMAC, and an attacker without <code>JWT_SECRET</code> cannot compute the matching signature.</p>
+
+<p class="q">Q2. Why the tampered token failed; the <code>none</code> algorithm.</p>
+<p>I changed one character of the payload. The server recomputed the HMAC over the received header and payload, got a value different from the token's signature, and <code>jwt.verify</code> threw an invalid-signature error that the middleware turned into 401. If the server accepted <code>alg: "none"</code>, an attacker could write a header with <code>"alg":"none"</code>, a payload with <code>"role":"admin"</code>, leave the signature empty, and the token would be accepted as valid, which would give anyone administrator access. The same risk exists with algorithm confusion (switching RS256 to HS256 and using the public key as the secret). This is why verification pins <code>algorithms: ['HS256']</code> and the issuer, in both the REST middleware and the WebSocket upgrade handler.</p>
+
+<p class="q">Q3. Risks of a token in the WebSocket URL; an alternative.</p>
+<p>Risk 1: URLs are logged by proxies, gateways, load balancers and the browser history, and can leak through the <code>Referer</code> header and screenshots, so the token ends up in places that are not protected like a secret (I removed it from the NGINX access log by logging <code>$uri</code>, but the error log and any other intermediary can still record it). Risk 2: a leaked URL is a usable credential until it expires, and it can be replayed from another machine. Alternatives: (a) authenticate with the first WebSocket message after connecting and close the socket if it is not valid within a few seconds; (b) request a single-use, seconds-long &ldquo;ticket&rdquo; from a REST endpoint and put only the ticket in the URL; (c) use a <code>SameSite</code> cookie, together with an Origin check, so that no token appears in the URL.</p>
+
+<p class="q">Q4. Token expires while the connection is open.</p>
+<p>A WebSocket is authenticated once, at upgrade, so a token that expires later would otherwise keep working as long as the connection lives. The server should therefore enforce the expiry itself. ChatLab does so: it compares <code>exp</code> with the clock on every incoming message and on every heartbeat tick, and closes the socket with the application code 4401. In my test (<code>TOKEN_TTL=5s</code>), a message sent after expiry closed the connection with code 4401, and a REST call with the same token returned 401. A better user experience is to let the client refresh in band (send a new token in an <code>auth</code> message, or reconnect with a refresh token) when it receives 4401, and to close immediately if the token is revoked.</p>
+
+<h2>5. Exercise 4 &mdash; Authorization with Roles</h2>
+<h3>Table 4.1 &mdash; Authorization Tests</h3>
+<table>
+<tr><th style="width:27%">Test</th><th style="width:15%">Expected</th><th style="width:28%">Observed</th><th>Remarks</th></tr>
+<tr><td>carol joins dev</td><td>Rejected</td><td>Error <code>FORBIDDEN</code></td><td>Connection stayed open.</td></tr>
+<tr><td>bob joins and sends in dev</td><td>Allowed</td><td>Allowed; message delivered back to bob</td><td></td></tr>
+<tr><td>guest1 sends in general</td><td>Rejected</td><td>Error <code>FORBIDDEN</code></td><td>Guest could join general (read only).</td></tr>
+<tr><td>guest1 joins dev</td><td>Rejected</td><td>Error <code>FORBIDDEN</code></td><td></td></tr>
+<tr><td>bob creates a room (REST)</td><td>403</td><td>403</td><td>Evidence 3-01, 4-01.</td></tr>
+<tr><td>alice creates a room (REST)</td><td>201</td><td>201</td><td></td></tr>
+<tr><td>bob deletes carol's message</td><td>403</td><td>403</td><td>Evidence 3-01. (In evidence 4-01 both delete calls show 404 because the same message had already been deleted by the earlier automated run; the valid results are the 403/200 pair in 3-01.)</td></tr>
+<tr><td>alice deletes carol's message</td><td>200</td><td>200</td><td>The deletion is also broadcast to the room as a <code>deleted</code> event.</td></tr>
+<tr><td>alice removes bob from dev while connected</td><td>bob stops receiving</td><td>HTTP 200; the next message alice sent in dev (&ldquo;after removal&rdquo;) was <b>not</b> received by bob</td><td>Bob's socket stayed open; his later send was rejected with <code>NOT_IN_ROOM</code>. Evidence 3-01, 4-03.</td></tr>
+</table>
+
+<h3>Guide questions</h3>
+<p class="q">Q1. Authentication versus authorization; 401 versus 403.</p>
+<p>Authentication establishes who the caller is (login, token verification); authorization decides what that identity may do. A request without a token or with an invalid one gets <b>401 Unauthorized</b>: the server does not know who is calling. In my tests, a call with no token, a tampered token and an expired token all returned 401. A request from a known user who lacks the right gets <b>403 Forbidden</b>: bob, correctly authenticated, tried to create a room and to delete carol's message and received 403 in both cases, while the same calls from alice (admin) succeeded with 201 and 200. Sending 401 would invite a pointless re-login, and sending 403 to an anonymous caller would hide the real problem.</p>
+
+<p class="q">Q2. Why checking only at join is not enough.</p>
+<p>Permissions change over time, and a check made once at join time can be out of date later (a time-of-check to time-of-use gap). In the room-removal test, if only the join had been checked, Bob's socket would still be in the <code>dev</code> room's set after Alice removed him, so he would keep receiving every dev message and could keep sending into the room, even though the REST state says he is no longer a member. ChatLab prevents this in three ways: removing a member also removes their open sockets from the room; <code>can(user, 'send', room)</code> is evaluated on every message; and <code>broadcast</code> evaluates <code>can(user, 'join', room)</code> for every recipient before sending. In the test, Bob did not receive Alice's next dev message. I also ran the failing version to see it (evidence 4-02): with the per-message checks and the socket removal disabled, Alice removed Bob (HTTP 200), and Bob still <b>received</b> Alice's next dev message (&ldquo;secret after removal&rdquo;) and his own new message was <b>accepted and delivered</b> to Alice. With the final code (evidence 4-03), Bob did not receive Alice's message and his attempt to send was answered with <code>NOT_IN_ROOM</code>.</p>
+
+<p class="q">Q3. Role stored in the JWT: when does a role change apply?</p>
+<p>The token is signed and self-contained, so the server keeps trusting the role it contains until the token expires. If an admin demotes Bob from member to guest, Bob's existing token still says <code>member</code> for up to 15 minutes, and his open WebSocket also keeps that role. The change only applies after he logs in again and receives a new token. To make it immediate, either look the role up on the server on every request and message (database or cache) instead of trusting the claim; or keep a revocation list or per-user &ldquo;token version&rdquo; that the verifier checks; or shorten the lifetime and use refresh tokens; and on a role change, close or re-authenticate the user's open sockets. ChatLab already reads room membership live, but it reads the role from the token, so a demotion would be delayed by up to 15 minutes.</p>
+
+<p class="q">Q4. An ABAC rule for ChatLab.</p>
+<p>&ldquo;A member may delete their own message only within five minutes of sending it&rdquo; depends on an attribute of the resource (the message's timestamp) and on the current time, not only on the role. Another example is a room-level setting: &ldquo;if a room is flagged <code>read-only</code>, only admins may send in it&rdquo;, which depends on an attribute of the room. Neither rule can be written as a fixed table of roles, but both fit into <code>can()</code> if it is given the message or room object, which is already how the <code>delete</code> rule receives the message.</p>
+
+<h2>6. Summary and Limitations</h2>
+<p>All four exercises were completed and every test in Tables 1.1 to 4.1 gave the expected result. The application runs with a single <code>docker compose up</code> once <code>.env</code> exists. Limitations: data are in memory and lost on restart; the rooms map works for one app instance only (Q4 of Exercise 1); the Origin check allows clients that send no Origin; the role is read from the token (Q3 above); transport is plain HTTP on localhost, so production would require TLS; and the 20-message latency was measured over loopback, so it mostly measures software overhead and not network delay. The automated check script labelled one test &ldquo;expired-style token&rdquo; because it was signed with the wrong key; the genuine expiry test is in evidence 3-07.</p>
+
+<h2 class="pb">Appendix A &mdash; Evidence index (excluded from page count)</h2>
+<table>
+<tr><th>File in <code>evidence/</code></th><th>Content</th></tr>
+<tr><td>1-01-ws-tests.txt</td><td>Table 1.1: delivery, isolation, bad input, size, latency</td></tr>
+<tr><td>1-02-frozen-client.txt</td><td>Frozen client closed after 57.8 s</td></tr>
+<tr><td>2-01-direct-3000.txt</td><td>Direct access to port 3000 refused</td></tr>
+<tr><td>2-02-ws-handshake.txt</td><td>Handshake through gateway: 101 Switching Protocols</td></tr>
+<tr><td>2-03-v1-headers.txt, 2-04-v2.txt</td><td><code>curl -i</code> for v1 (deprecation headers) and v2</td></tr>
+<tr><td>2-05-rate-limit.txt</td><td>Sequential 100-request loop: 89 &times; 200, 11 &times; 429</td></tr>
+<tr><td>2-06-ws-without-upgrade-headers.txt</td><td>Handshake rejected with 404 and gateway log</td></tr>
+<tr><td>2-07-idle-ws-timeout.txt</td><td>Idle WebSocket closed after 61.2 s</td></tr>
+<tr><td>3-01-verify.txt</td><td>Automated checks for Tables 2.1, 3.1, 4.1; parallel burst 21/79</td></tr>
+<tr><td>3-02-jwt-decode.txt</td><td>Decoded JWT</td></tr>
+<tr><td>3-03 / 3-04 / 3-05</td><td>401 without token; 401 wrong password; 403 wrong Origin</td></tr>
+<tr><td>3-06-gateway-access-log.txt</td><td>Gateway log; 0 lines containing <code>token=</code></td></tr>
+<tr><td>3-07-expired-token.txt</td><td>REST 401 and WebSocket close code 4401 after expiry</td></tr>
+<tr><td>4-02 / 4-03 removal tests</td><td>Room removal without checks (Bob still receives and sends) and with the final code (he does not)</td></tr>
+<tr><td>browser-ws-handshake.json, screens/ws-handshake-devtools.png</td><td>Browser (Edge) WebSocket handshake, Figure 1</td></tr>
+<tr><td>4-01-http-status-matrix.txt</td><td>REST status codes for room creation and message deletion (see note in Table 4.1)</td></tr>
+</table>
+<p>All files are timestamped (UTC) per line and were produced by <code>bash scripts/collect-evidence.sh</code>. The live demonstration is given separately.</p>
+</body></html>

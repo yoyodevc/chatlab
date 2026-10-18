@@ -1,0 +1,11 @@
+2026-10-18T14:43:30Z ### Authorization over REST
+2026-10-18T14:43:30Z ### cmd: bash -c 
+2026-10-18T14:43:30Z echo 'bob   POST /rooms        ->' $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzkyMzM0NDI1LCJleHAiOjE3OTIzMzUzMjUsImlzcyI6ImNoYXRsYWIifQ.cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms' -H 'Content-Type: application/json' -d '{"name":"x1"}' localhost:8080/api/v1/rooms)
+2026-10-18T14:43:30Z echo 'alice POST /rooms        ->' $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc5MjMzNDQyNSwiZXhwIjoxNzkyMzM1MzI1LCJpc3MiOiJjaGF0bGFiIn0.gDnXSRq8wnZcHsgkjqQNInycSYfQ47083MDH85xav1o' -H 'Content-Type: application/json' -d '{"name":"x1"}' localhost:8080/api/v1/rooms)
+2026-10-18T14:43:30Z echo 'bob   DELETE msg_2 (carol) ->' $(curl -s -o /dev/null -w '%{http_code}' -X DELETE -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzkyMzM0NDI1LCJleHAiOjE3OTIzMzUzMjUsImlzcyI6ImNoYXRsYWIifQ.cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms' localhost:8080/api/v1/messages/msg_2)
+2026-10-18T14:43:30Z echo 'alice DELETE msg_2 (carol) ->' $(curl -s -o /dev/null -w '%{http_code}' -X DELETE -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc5MjMzNDQyNSwiZXhwIjoxNzkyMzM1MzI1LCJpc3MiOiJjaGF0bGFiIn0.gDnXSRq8wnZcHsgkjqQNInycSYfQ47083MDH85xav1o' localhost:8080/api/v1/messages/msg_2)
+2026-10-18T14:43:30Z bob   POST /rooms        -> 403
+2026-10-18T14:43:31Z alice POST /rooms        -> 201
+2026-10-18T14:43:31Z bob   DELETE msg_2 (carol) -> 404
+2026-10-18T14:43:31Z alice DELETE msg_2 (carol) -> 404
+2026-10-18T14:43:31Z ### exit: 0

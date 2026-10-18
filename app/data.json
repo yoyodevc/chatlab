@@ -1,0 +1,63 @@
+{
+  "users": [
+    {
+      "username": "alice",
+      "role": "admin",
+      "passwordHash": "$2b$10$EWOiqzmLa3GZ//OJrhMgX.VEPoqy7zPx/g..JQojYtB8wMuksNhIm"
+    },
+    {
+      "username": "bob",
+      "role": "member",
+      "passwordHash": "$2b$10$lGpizVt0I18ziePZJ7qVweviNlYMtjPAR.A8Jo/IYmSygrnic1maq"
+    },
+    {
+      "username": "carol",
+      "role": "member",
+      "passwordHash": "$2b$10$ydFgQjS2.QrKTUwkJA/CG.SyyS5y0iC7kStkuqE4TRr.29Xvk5Rym"
+    },
+    {
+      "username": "guest1",
+      "role": "guest",
+      "passwordHash": "$2b$10$21Xbia4YzxjH6o/JIBEaO.9AqXDJeYyY7XUEKj6gG8R2Ziz9e.eSa"
+    }
+  ],
+  "rooms": {
+    "general": {
+      "members": [
+        "alice",
+        "bob",
+        "carol",
+        "guest1"
+      ]
+    },
+    "dev": {
+      "members": [
+        "alice",
+        "bob"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "msg_1",
+      "room": "general",
+      "from": "bob",
+      "text": "Hi",
+      "ts": "2026-10-13T05:40:12Z"
+    },
+    {
+      "id": "msg_2",
+      "room": "general",
+      "from": "carol",
+      "text": "Hello everyone",
+      "ts": "2026-10-13T05:41:03Z"
+    },
+    {
+      "id": "msg_3",
+      "room": "dev",
+      "from": "bob",
+      "text": "Build is green",
+      "ts": "2026-10-13T05:42:30Z"
+    }
+  ]
+}

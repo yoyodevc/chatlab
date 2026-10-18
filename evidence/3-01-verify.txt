@@ -1,0 +1,30 @@
+2026-10-18T14:42:07Z ### Tables 3.1 / 4.1 / 2.1 automated checks
+2026-10-18T14:42:07Z ### cmd: node scripts/verify.js
+2026-10-18T14:42:08Z --- Table 3.1 Authentication (http://localhost:8080)
+2026-10-18T14:42:09Z Login with correct password                          200
+2026-10-18T14:42:09Z Login with wrong password                            401
+2026-10-18T14:42:09Z REST call with no token                              401
+2026-10-18T14:42:09Z REST call with valid token                           200
+2026-10-18T14:42:09Z REST call with garbage/expired-style token           401
+2026-10-18T14:42:09Z REST call with tampered token                        401
+2026-10-18T14:42:09Z WebSocket with no token                              401
+2026-10-18T14:42:09Z WebSocket with valid token                           open
+2026-10-18T14:42:09Z WebSocket from a different Origin                    403
+2026-10-18T14:42:09Z Client sends a fake "from" field -> server stamps    bob
+2026-10-18T14:42:10Z 
+2026-10-18T14:42:10Z --- Table 4.1 Authorization
+2026-10-18T14:42:10Z carol joins dev (expect rejected)                    FORBIDDEN
+2026-10-18T14:42:10Z bob joins and sends in dev (expect allowed)          allowed
+2026-10-18T14:42:10Z guest1 joins general + sends (errors, expect FORBIDDEN) FORBIDDEN,FORBIDDEN
+2026-10-18T14:42:10Z bob creates a room (expect 403)                      403
+2026-10-18T14:42:10Z alice creates a room (expect 201)                    201
+2026-10-18T14:42:10Z bob deletes carol's msg_2 (expect 403)               403
+2026-10-18T14:42:10Z alice deletes carol's msg_2 (expect 200)             200
+2026-10-18T14:42:10Z alice removes bob from dev (HTTP 200); bob still receives? no (expected)
+2026-10-18T14:42:10Z 
+2026-10-18T14:42:11Z --- Table 2.1 versioning + rate limit
+2026-10-18T14:42:11Z v1 headers: Deprecation=true Sunset=Wed, 30 Jun 2027 00:00:00 GMT Link=</api/v2/rooms>; rel="successor-version"
+2026-10-18T14:42:11Z v1 body: [{"id":"msg_1","from":"bob","text":"Hi","ts":"2026-10-13T05:40:12Z"},{"id":"msg_4","from":"bob","text":"hello room","ts":"2026-10-18T14:42:05Z"},{"id":"msg_5","
+2026-10-18T14:42:11Z v2 body: {"items":[{"id":"msg_1","from":{"username":"bob","role":"member"},"text":"Hi","ts":"2026-10-13T05:40:12Z"}],"nextCursor":"msg_1"}
+2026-10-18T14:42:11Z 100 rapid requests, status counts: { '200': 21, '429': 79 }
+2026-10-18T14:43:26Z ### exit: 0

@@ -1,0 +1,10 @@
+2026-10-18T14:40:27Z ### WebSocket opening handshake through gateway (Q2)
+2026-10-18T14:40:27Z ### cmd: curl -si --max-time 3 -N http://localhost:8080/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzkyMzM0NDI1LCJleHAiOjE3OTIzMzUzMjUsImlzcyI6ImNoYXRsYWIifQ.cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms -H Connection: Upgrade -H Upgrade: websocket -H Sec-WebSocket-Version: 13 -H Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ== -H Origin: http://localhost:8080
+2026-10-18T14:40:30Z HTTP/1.1 101 Switching Protocols
+2026-10-18T14:40:31Z Server: nginx/1.27.5
+2026-10-18T14:40:31Z Date: Sun, 18 Oct 2026 14:40:27 GMT
+2026-10-18T14:40:31Z Connection: upgrade
+2026-10-18T14:40:31Z Upgrade: websocket
+2026-10-18T14:40:31Z Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+2026-10-18T14:40:31Z 
+2026-10-18T14:40:31Z ### exit: 28

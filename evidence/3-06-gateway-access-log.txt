@@ -1,0 +1,45 @@
+2026-10-18T14:43:28Z ### Gateway access log (grep token= count follows)
+2026-10-18T14:43:28Z ### cmd: bash -c docker compose logs --no-log-prefix gateway | tail -40; echo; echo 'lines containing token=:' $(docker compose logs --no-log-prefix gateway | grep -c 'token=')
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=98394c3a8f5a8d1c0a5a442e36443d3e
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *358 limiting requests, excess: 20.530 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=057216280ee79697ad1e9185ea6a54b4
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *359 limiting requests, excess: 20.510 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=bc94e23a99c2c55e5e1bb1d3351c0a95
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=31b7767487b58682cc1518a2b1720551
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 64#64: *360 limiting requests, excess: 20.500 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=fe291cb429d9045713b1f9495bada6e1
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=bdc3861b62d45443cebabd41ec994d75
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *361 limiting requests, excess: 20.470 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *362 limiting requests, excess: 20.460 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *363 limiting requests, excess: 20.410 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=196f7da92e745d224487f8efe4186e57
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *364 limiting requests, excess: 20.380 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *365 limiting requests, excess: 20.370 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=635a49d2f404434fc8a4dffc79f2b1cf
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=a4c5623f40aeccf51185e4512fa105d0
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *366 limiting requests, excess: 20.340 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=ba3fced24a86dd64a8e0303a5af079dd
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *367 limiting requests, excess: 20.320 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=e61bb2bc7a2548ab42d026baaf707ca9
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *368 limiting requests, excess: 20.290 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=33780bd8a17f9681519897cffee79606
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 62#62: *369 limiting requests, excess: 20.260 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:29Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=294d52635583d9b23f0f2460f71c9a74
+2026-10-18T14:43:29Z 2026/10/18 14:42:11 [error] 64#64: *370 limiting requests, excess: 20.250 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=20158e51a737039a1ffacc6f1e77b32d
+2026-10-18T14:43:30Z 2026/10/18 14:42:11 [error] 64#64: *371 limiting requests, excess: 20.230 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=b65754945ee7b0a10c04972878533988
+2026-10-18T14:43:30Z 2026/10/18 14:42:11 [error] 64#64: *372 limiting requests, excess: 20.190 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:30Z 2026/10/18 14:42:11 [error] 65#65: *373 limiting requests, excess: 20.180 by zone "api", client: 172.19.0.1, server: , request: "GET /api/v1/rooms HTTP/1.1", host: "localhost:8080"
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=668b68aad962f0fb6a2b6cc2040ed6de
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /api/v1/rooms HTTP/1.1" 429 169 rid=b464b66d32536d69e8e210d17f8e1db4
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /ws HTTP/1.1" 101 255 rid=9a340be3b334ce9b2a16ea6e90e85042
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /ws HTTP/1.1" 101 247 rid=bb991ac54d822a1a9c26918eef6d451f
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /ws HTTP/1.1" 101 80 rid=547d8d68f0fc40ec8573928e6b156608
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:42:11 +0000] "GET /ws HTTP/1.1" 101 373 rid=4971f18cc29e6fd839759d54fa93003d
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:43:26 +0000] "GET /api/v1/rooms HTTP/1.1" 401 24 rid=60dc899f04716d1be816c5c00e86ff26
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:43:27 +0000] "POST /api/v1/login HTTP/1.1" 401 31 rid=423fc02d6e666f679871384920bb0e1e
+2026-10-18T14:43:30Z 172.19.0.1 [18/Oct/2026:14:43:28 +0000] "GET /ws HTTP/1.1" 403 5 rid=638a08207bd4d094323afd3d99c66b0b
+2026-10-18T14:43:30Z 
+2026-10-18T14:43:30Z lines containing token=: 0
+2026-10-18T14:43:30Z ### exit: 0

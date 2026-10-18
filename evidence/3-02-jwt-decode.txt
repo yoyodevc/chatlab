@@ -1,0 +1,8 @@
+2026-10-18T14:43:26Z ### Decoded JWT (Q1)
+2026-10-18T14:43:26Z ### cmd: node -e 
+2026-10-18T14:43:26Z const t='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzkyMzM0NDI1LCJleHAiOjE3OTIzMzUzMjUsImlzcyI6ImNoYXRsYWIifQ.cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms'.split('.');const d=s=>Buffer.from(s,'base64url').toString();
+2026-10-18T14:43:26Z console.log('header :',d(t[0]));console.log('payload:',d(t[1]));console.log('signature (b64url):',t[2]);
+2026-10-18T14:43:26Z header : {"alg":"HS256","typ":"JWT"}
+2026-10-18T14:43:26Z payload: {"sub":"bob","role":"member","iat":1792334425,"exp":1792335325,"iss":"chatlab"}
+2026-10-18T14:43:26Z signature (b64url): cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms
+2026-10-18T14:43:26Z ### exit: 0

@@ -1,0 +1,6 @@
+2026-10-18T14:43:31Z ### Frozen client: time until server closes it
+2026-10-18T14:43:31Z ### cmd: node scripts/ws-tests.js frozen
+2026-10-18T14:43:31Z 2026-10-18T14:43:31.515Z frozen client connected (autoPong disabled)
+2026-10-18T14:44:29Z 2026-10-18T14:44:29.287Z closed by server, code=1006
+2026-10-18T14:44:29Z 2026-10-18T14:44:29.287Z RESULT frozen client closed after 57.8 s
+2026-10-18T14:44:29Z ### exit: 0

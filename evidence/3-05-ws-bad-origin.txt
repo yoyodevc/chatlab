@@ -1,0 +1,9 @@
+2026-10-18T14:43:28Z ### WS upgrade from different Origin
+2026-10-18T14:43:28Z ### cmd: curl -si --max-time 3 http://localhost:8080/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzkyMzM0NDI1LCJleHAiOjE3OTIzMzUzMjUsImlzcyI6ImNoYXRsYWIifQ.cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms -H Connection: Upgrade -H Upgrade: websocket -H Sec-WebSocket-Version: 13 -H Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ== -H Origin: http://evil.example
+2026-10-18T14:43:28Z HTTP/1.1 403 Forbidden
+2026-10-18T14:43:28Z Server: nginx/1.27.5
+2026-10-18T14:43:28Z Date: Sun, 18 Oct 2026 14:43:28 GMT
+2026-10-18T14:43:28Z Transfer-Encoding: chunked
+2026-10-18T14:43:28Z Connection: keep-alive
+2026-10-18T14:43:28Z 
+2026-10-18T14:43:28Z ### exit: 0

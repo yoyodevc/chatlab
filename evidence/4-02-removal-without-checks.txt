@@ -1,0 +1,4 @@
+=== WITHOUT per-message checks / socket removal
+2026-10-18T14:57:07.081Z alice removes bob from dev -> HTTP 200
+2026-10-18T14:57:07.486Z bob received alice's message after removal: true
+2026-10-18T14:57:07.888Z bob's own message accepted and delivered to alice: true | bob events after removal: ["message","message"]

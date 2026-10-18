@@ -1,0 +1,8 @@
+2026-10-18T14:42:04Z ### Table 1.1 WebSocket behaviour (via gateway)
+2026-10-18T14:42:04Z ### cmd: node scripts/ws-tests.js
+2026-10-18T14:42:06Z 2026-10-18T14:42:06.062Z RESULT 3 clients in general received: alice=true bob(sender)=true carol=true
+2026-10-18T14:42:06Z 2026-10-18T14:42:06.064Z RESULT client in different room (dev) received: false
+2026-10-18T14:42:06Z 2026-10-18T14:42:06.482Z RESULT errors returned for [invalid JSON, unknown type, missing type, 5KB, 501 chars]: ["BAD_FORMAT","UNKNOWN_TYPE","BAD_FORMAT","TOO_LARGE","TOO_LONG"]
+2026-10-18T14:42:06Z 2026-10-18T14:42:06.793Z RESULT server still delivering after bad input: true | bob socket state: open
+2026-10-18T14:42:07Z 2026-10-18T14:42:07.734Z RESULT avg send->receive over 20 msgs: 2.3 ms (min 2, max 3) via ws://localhost:8080
+2026-10-18T14:42:07Z ### exit: 0

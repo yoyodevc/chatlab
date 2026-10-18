@@ -1,0 +1,5 @@
+2026-10-18T14:45:47Z ### Token expiry (TTL=5s): REST and open WebSocket
+2026-10-18T14:45:47Z ### cmd: node scripts/ws-tests.js expiry
+2026-10-18T14:45:54Z 2026-10-18T14:45:54.443Z REST with expired token -> 401
+2026-10-18T14:45:54Z 2026-10-18T14:45:54.455Z WS close code after sending with expired token: 4401
+2026-10-18T14:45:54Z ### exit: 0

@@ -1,0 +1,6 @@
+2026-10-18T14:44:36Z ### Idle WS with heartbeat 120 s (> gateway 60 s)
+2026-10-18T14:44:36Z ### cmd: node scripts/ws-tests.js idle
+2026-10-18T14:44:37Z 2026-10-18T14:44:37.065Z idle client connected (answers pings, sends nothing)
+2026-10-18T14:45:38Z 2026-10-18T14:45:38.306Z closed, code=1006
+2026-10-18T14:45:38Z 2026-10-18T14:45:38.306Z RESULT idle WebSocket closed after 61.2 s
+2026-10-18T14:45:38Z ### exit: 0

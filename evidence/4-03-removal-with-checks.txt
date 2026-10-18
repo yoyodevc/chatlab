@@ -1,0 +1,4 @@
+=== WITH checks (final code)
+2026-10-18T14:57:19.721Z alice removes bob from dev -> HTTP 200
+2026-10-18T14:57:20.128Z bob received alice's message after removal: false
+2026-10-18T14:57:20.529Z bob's own message accepted and delivered to alice: false | bob events after removal: ["error:NOT_IN_ROOM"]

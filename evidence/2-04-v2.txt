@@ -1,0 +1,11 @@
+2026-10-18T14:40:31Z ### v2 response
+2026-10-18T14:40:31Z ### cmd: curl -si -H Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzkyMzM0NDI1LCJleHAiOjE3OTIzMzUzMjUsImlzcyI6ImNoYXRsYWIifQ.cXpqPF5wCjPblimGMfwVp0cXJAUUGuyFPCsxXoRrBms localhost:8080/api/v2/rooms/general/messages?limit=2
+2026-10-18T14:40:32Z HTTP/1.1 200 OK
+2026-10-18T14:40:32Z Server: nginx/1.27.5
+2026-10-18T14:40:32Z Date: Sun, 18 Oct 2026 14:40:31 GMT
+2026-10-18T14:40:32Z Content-Type: application/json; charset=utf-8
+2026-10-18T14:40:32Z Content-Length: 237
+2026-10-18T14:40:32Z Connection: keep-alive
+2026-10-18T14:40:32Z ETag: W/"ed-B6E4bCrv+NuYBbIH6Oz04NkMLzE"
+2026-10-18T14:40:32Z 
+2026-10-18T14:40:32Z {"items":[{"id":"msg_1","from":{"username":"bob","role":"member"},"text":"Hi","ts":"2026-10-13T05:40:12Z"},{"id":"msg_2","from":{"username":"carol","role":"member"},"text":"Hello everyone","ts":"2026-10-13T05:41:03Z"}],"nextCursor":null}### exit: 0

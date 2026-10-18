@@ -1,0 +1,14 @@
+2026-10-18T14:43:26Z ### REST call with no token
+2026-10-18T14:43:26Z ### cmd: curl -si localhost:8080/api/v1/rooms
+2026-10-18T14:43:26Z HTTP/1.1 401 Unauthorized
+2026-10-18T14:43:26Z Server: nginx/1.27.5
+2026-10-18T14:43:26Z Date: Sun, 18 Oct 2026 14:43:26 GMT
+2026-10-18T14:43:27Z Content-Type: application/json; charset=utf-8
+2026-10-18T14:43:27Z Content-Length: 24
+2026-10-18T14:43:27Z Connection: keep-alive
+2026-10-18T14:43:27Z Deprecation: true
+2026-10-18T14:43:27Z Sunset: Wed, 30 Jun 2027 00:00:00 GMT
+2026-10-18T14:43:27Z Link: </api/v2/rooms>; rel="successor-version"
+2026-10-18T14:43:27Z ETag: W/"18-XPDV80vbMk4yY1/PADG4jYM4rSI"
+2026-10-18T14:43:27Z 
+2026-10-18T14:43:27Z {"error":"Unauthorized"}### exit: 0
